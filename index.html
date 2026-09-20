@@ -1,0 +1,1636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>APEX Salon & Spa | Ambient Audio, 3D Flip & Custom Package Architect</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brandGold: '#D4AF37',
+            brandGoldLight: '#FBE89B',
+            brandGoldDark: '#996515',
+            glassDark: 'rgba(10, 10, 14, 0.72)',
+            glassCard: 'rgba(20, 20, 28, 0.62)',
+            glassBorder: 'rgba(212, 175, 55, 0.28)',
+          },
+          fontFamily: {
+            cinzel: ['Cinzel', 'serif'],
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    html {
+      scroll-behavior: smooth;
+    }
+    body {
+      background-color: #030305;
+      background-image: 
+        radial-gradient(circle at 10% 15%, rgba(212, 175, 55, 0.1) 0%, transparent 40%),
+        radial-gradient(circle at 90% 50%, rgba(212, 175, 55, 0.08) 0%, transparent 45%),
+        radial-gradient(circle at 50% 90%, rgba(153, 101, 21, 0.09) 0%, transparent 50%);
+      background-attachment: fixed;
+    }
+    .gold-gradient-text {
+      background: linear-gradient(135deg, #FFF4C2, #D4AF37, #A37015);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .glass-panel {
+      background: rgba(18, 18, 25, 0.68);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(212, 175, 55, 0.24);
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+    .glass-card-hover {
+      transition: transform 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+    }
+    .glass-card-hover:hover {
+      transform: translateY(-6px);
+      background: rgba(28, 28, 38, 0.85);
+      border-color: rgba(212, 175, 55, 0.65);
+      box-shadow: 0 24px 50px rgba(212, 175, 55, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+    }
+
+    /* Scroll Motion Fade Reveal */
+    .reveal {
+      opacity: 0;
+      transform: translateY(35px);
+      transition: opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1), transform 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .reveal.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* 3D FLIP-CARD (FLIP-FLOP MOTION) ENGINE */
+    .flip-card-container {
+      perspective: 1200px;
+    }
+    .flip-card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      transform-style: preserve-3d;
+    }
+    .flip-card-container:hover .flip-card-inner,
+    .flip-card-container.flipped .flip-card-inner {
+      transform: rotateY(180deg);
+    }
+    .flip-card-front, .flip-card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      border-radius: 1.25rem;
+    }
+    .flip-card-back {
+      transform: rotateY(180deg);
+    }
+
+    /* Before / After Slider */
+    .ba-container {
+      position: relative;
+      overflow: hidden;
+      user-select: none;
+    }
+    .ba-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      overflow: hidden;
+      width: 50%;
+    }
+    .ba-handle {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 3px;
+      background: #D4AF37;
+      cursor: ew-resize;
+      transform: translateX(-50%);
+    }
+    .ba-handle-button {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #D4AF37;
+      color: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px rgba(212, 175, 55, 0.95);
+      font-size: 13px;
+    }
+
+    /* Booking Engine States */
+    .service-card.selected,
+    .stylist-card.selected {
+      border-color: #D4AF37 !important;
+      background: rgba(212, 175, 55, 0.18) !important;
+      box-shadow: 0 0 20px rgba(212, 175, 55, 0.28);
+    }
+    .slot-pill.selected,
+    .date-pill.selected {
+      background-color: #D4AF37 !important;
+      color: #000 !important;
+      border-color: #D4AF37 !important;
+      font-weight: 700 !important;
+      box-shadow: 0 0 16px rgba(212, 175, 55, 0.5);
+    }
+
+    /* Magnetic Cursor Styling */
+    #cursor-dot, #cursor-ring {
+      pointer-events: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      z-index: 9999;
+      transition: opacity 0.3s ease;
+    }
+    #cursor-dot {
+      width: 6px;
+      height: 6px;
+      background-color: #D4AF37;
+    }
+    #cursor-ring {
+      width: 34px;
+      height: 34px;
+      border: 1.5px solid rgba(212, 175, 55, 0.5);
+      transition: width 0.2s ease, height 0.2s ease, border-color 0.2s ease, transform 0.08s ease-out;
+    }
+    .hover-magnetic #cursor-ring {
+      width: 55px;
+      height: 55px;
+      border-color: #D4AF37;
+      background: rgba(212, 175, 55, 0.1);
+    }
+
+    /* Audio Waves Equalizer */
+    .audio-bar {
+      width: 2.5px;
+      background: #D4AF37;
+      border-radius: 2px;
+      animation: soundWave 1.2s infinite ease-in-out alternate;
+    }
+    .audio-bar:nth-child(1) { height: 6px; animation-delay: 0.1s; }
+    .audio-bar:nth-child(2) { height: 14px; animation-delay: 0.3s; }
+    .audio-bar:nth-child(3) { height: 9px; animation-delay: 0.2s; }
+    .audio-bar:nth-child(4) { height: 16px; animation-delay: 0.4s; }
+    .audio-paused .audio-bar {
+      animation: none !important;
+      height: 3px !important;
+      opacity: 0.4;
+    }
+    @keyframes soundWave {
+      0% { height: 4px; }
+      100% { height: 18px; }
+    }
+  </style>
+</head>
+<body class="text-gray-200 font-sans antialiased selection:bg-brandGold selection:text-black">
+
+  <!-- CUSTOM MAGNETIC GLOW CURSOR (HIDDEN ON TOUCH SCREENS) -->
+  <div id="cursor-dot" class="hidden md:block"></div>
+  <div id="cursor-ring" class="hidden md:block"></div>
+
+  <!-- TOP CONCIERGE BAR -->
+  <div class="bg-black/70 backdrop-blur-md text-gray-400 text-xs py-2.5 px-6 border-b border-white/5">
+    <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-2">
+      <div class="flex items-center gap-5">
+        <span><i class="fa-solid fa-phone text-brandGold mr-1.5"></i> +91 98765 43210</span>
+        <span class="hidden md:inline"><i class="fa-solid fa-location-dot text-brandGold mr-1.5"></i> Prime Circle, Ring Road, Rajkot</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <span class="flex items-center gap-1.5 text-emerald-400 font-medium">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> Live Master Stylist Rosters Active
+        </span>
+        <span class="text-gray-600">|</span>
+        <span class="text-brandGold">Tue - Sun: 9 AM - 9 PM</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAVIGATION HEADER WITH AMBIENT AUDIO TOGGLE -->
+  <header class="sticky top-0 z-40 bg-black/80 backdrop-blur-2xl border-b border-white/10 transition-all duration-300">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <a href="#" class="flex items-center gap-2">
+        <span class="text-2xl sm:text-3xl font-bold font-cinzel tracking-widest gold-gradient-text">APEX</span>
+        <span class="text-[11px] uppercase tracking-widest text-gray-400 pl-2 border-l border-brandGold/40 font-medium">Couture Salon</span>
+      </a>
+
+      <nav class="hidden xl:flex items-center space-x-6 text-sm font-medium">
+        <a href="#home" class="hover:text-brandGold transition-colors">Home</a>
+        <a href="#about" class="hover:text-brandGold transition-colors">Philosophy</a>
+        <a href="#package-builder" class="text-brandGold hover:underline flex items-center gap-1 font-semibold">
+          <i class="fa-solid fa-calculator text-xs"></i> Package Builder
+        </a>
+        <a href="#bridal" class="hover:text-brandGold transition-colors flex items-center gap-1">
+          <i class="fa-solid fa-ring text-xs text-brandGold"></i> Bridal Suite
+        </a>
+        <a href="#flip-services" class="hover:text-brandGold transition-colors flex items-center gap-1">
+          <i class="fa-solid fa-arrows-rotate text-xs text-brandGold"></i> 3D Services
+        </a>
+        <a href="#stylists" class="hover:text-brandGold transition-colors">Artists</a>
+        <a href="#memberships" class="hover:text-brandGold transition-colors">Privilege Club</a>
+        <a href="#transformation" class="hover:text-brandGold transition-colors">Transformations</a>
+        <a href="#gallery" class="hover:text-brandGold transition-colors">Lookbook</a>
+      </nav>
+
+      <div class="flex items-center gap-3">
+        <!-- AMBIENT ZEN SPA AUDIO TOGGLE (NEW IN ₹90K) -->
+        <button id="audioToggleBtn" onclick="toggleAmbientAudio()" class="audio-paused glass-panel px-3 py-2 rounded-full flex items-center gap-2 text-xs font-semibold text-gray-300 hover:text-brandGold hover:border-brandGold transition-all">
+          <div class="flex items-center gap-1 h-4">
+            <div class="audio-bar"></div>
+            <div class="audio-bar"></div>
+            <div class="audio-bar"></div>
+            <div class="audio-bar"></div>
+          </div>
+          <span id="audioLabelText" class="hidden sm:inline">Zen Audio Off</span>
+        </button>
+
+        <a href="#scheduler" class="bg-gradient-to-r from-brandGold to-brandGoldDark text-black text-xs md:text-sm font-bold py-2.5 px-6 rounded-full transition-all duration-300 shadow-lg shadow-brandGold/25 hover:scale-105 flex items-center gap-2">
+          <i class="fa-solid fa-calendar-check"></i>
+          <span>Book Stylist</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- 1. HERO SECTION -->
+  <section id="home" class="relative min-h-[92vh] flex items-center justify-center text-center px-5 overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-t from-[#030305] via-[#030305]/80 to-transparent z-10"></div>
+    <div class="absolute inset-0 bg-cover bg-center opacity-25 filter grayscale scale-105 transition-transform duration-1000" style="background-image: url('https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=1800&q=80');"></div>
+
+    <div class="relative z-20 max-w-4xl mx-auto py-20 reveal active">
+      <div class="inline-flex items-center gap-2 py-1.5 px-5 rounded-full glass-panel text-brandGold text-xs font-semibold uppercase tracking-widest mb-6">
+        <i class="fa-solid fa-music text-xs"></i>
+        Zen Audio Experience &bull; Custom Package Architect
+      </div>
+      <h1 class="text-4xl sm:text-6xl lg:text-7xl font-cinzel font-bold tracking-tight text-white leading-tight mb-6">
+        Where Pure Geometry <br>
+        <span class="gold-gradient-text">Meets Sensory Luxury</span>
+      </h1>
+      <p class="text-gray-300 text-sm sm:text-base max-w-2xl mx-auto mb-10 leading-relaxed font-light">
+        Immerse yourself in precision grooming choreographed to elevate your personal brand. Design your custom treatment bundle, hand-select your master stylist, and reserve queue-free appointments.
+      </p>
+
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a href="#package-builder" class="w-full sm:w-auto bg-brandGold hover:bg-brandGoldDark text-black font-bold px-8 py-3.5 rounded-xl transition-all text-sm shadow-xl shadow-brandGold/20 hover:scale-105 flex items-center justify-center gap-2">
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+          <span>Build Custom Package</span>
+        </a>
+        <a href="#flip-services" class="w-full sm:w-auto glass-panel hover:bg-white/10 text-gray-200 font-semibold px-8 py-3.5 rounded-xl transition-all text-sm flex items-center justify-center gap-2">
+          <i class="fa-solid fa-cube text-brandGold"></i>
+          <span>Explore 3D Flip Portfolio</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. QUICK STATS -->
+  <section class="border-y border-white/10 py-10 px-6">
+    <div class="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 reveal">
+      <div class="glass-panel p-6 rounded-2xl text-center glass-card-hover">
+        <p class="text-3xl font-cinzel font-bold text-brandGold">14,000+</p>
+        <p class="text-xs text-gray-400 uppercase tracking-wider mt-1.5">Groomed Patrons</p>
+      </div>
+      <div class="glass-panel p-6 rounded-2xl text-center glass-card-hover">
+        <p class="text-3xl font-cinzel font-bold text-brandGold">15+</p>
+        <p class="text-xs text-gray-400 uppercase tracking-wider mt-1.5">Creative Directors</p>
+      </div>
+      <div class="glass-panel p-6 rounded-2xl text-center glass-card-hover">
+        <p class="text-3xl font-cinzel font-bold text-brandGold">100%</p>
+        <p class="text-xs text-gray-400 uppercase tracking-wider mt-1.5">Vegan Formulations</p>
+      </div>
+      <div class="glass-panel p-6 rounded-2xl text-center glass-card-hover">
+        <p class="text-3xl font-cinzel font-bold text-brandGold">4.95 / 5.0</p>
+        <p class="text-xs text-gray-400 uppercase tracking-wider mt-1.5">Google Verified</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. NEW IN ₹90,000: INTERACTIVE CUSTOM PACKAGE BUILDER & LIVE SAVINGS CALCULATOR -->
+  <section id="package-builder" class="py-24 px-6 max-w-7xl mx-auto border-b border-white/5">
+    <div class="text-center max-w-2xl mx-auto mb-16 reveal">
+      <span class="text-brandGold text-xs uppercase tracking-widest font-semibold">Interactive Formulation</span>
+      <h2 class="text-3xl sm:text-4xl font-cinzel font-bold text-white mt-2">Bespoke Package Architect</h2>
+      <div class="w-16 h-0.5 bg-brandGold mx-auto mt-4 mb-4"></div>
+      <p class="text-gray-400 text-xs sm:text-sm">Select your desired grooming rituals to craft your personalized regimen with an instant 15% bundle privilege.</p>
+    </div>
+
+    <div class="grid lg:grid-cols-12 gap-8 items-start reveal">
+      <!-- Selectable Service Checkboxes -->
+      <div class="lg:col-span-8 space-y-4">
+        
+        <label class="glass-panel p-5 rounded-2xl flex items-center justify-between cursor-pointer border-brandGold/30 hover:border-brandGold transition-all">
+          <div class="flex items-center gap-4">
+            <input type="checkbox" onchange="recalculateCustomPackage()" checked data-name="Director's Architectural Haircut" data-price="650" data-time="45" class="package-item w-5 h-5 rounded accent-[#D4AF37]">
+            <div>
+              <h4 class="font-cinzel text-base font-bold text-white">Director's Architectural Haircut</h4>
+              <p class="text-xs text-gray-400">Facial contour mapping + precision cut & styling</p>
+            </div>
+          </div>
+          <span class="text-brandGold font-bold text-sm">₹650</span>
+        </label>
+
+        <label class="glass-panel p-5 rounded-2xl flex items-center justify-between cursor-pointer border-white/10 hover:border-brandGold transition-all">
+          <div class="flex items-center gap-4">
+            <input type="checkbox" onchange="recalculateCustomPackage()" checked data-name="Royal Beard Sculpt & Hot-Towel Spa" data-price="450" data-time="30" class="package-item w-5 h-5 rounded accent-[#D4AF37]">
+            <div>
+              <h4 class="font-cinzel text-base font-bold text-white">Royal Beard Sculpt & Hot-Towel Spa</h4>
+              <p class="text-xs text-gray-400">Micro-trimming + botanical oil acupressure</p>
+            </div>
+          </div>
+          <span class="text-brandGold font-bold text-sm">₹450</span>
+        </label>
+
+        <label class="glass-panel p-5 rounded-2xl flex items-center justify-between cursor-pointer border-white/10 hover:border-brandGold transition-all">
+          <div class="flex items-center gap-4">
+            <input type="checkbox" onchange="recalculateCustomPackage()" checked data-name="Medical-Grade Hydra-Infusion Glow" data-price="2200" data-time="60" class="package-item w-5 h-5 rounded accent-[#D4AF37]">
+            <div>
+              <h4 class="font-cinzel text-base font-bold text-white">Medical-Grade Hydra-Infusion Glow</h4>
+              <p class="text-xs text-gray-400">Vacuum extraction + hyaluronic acid penetration</p>
+            </div>
+          </div>
+          <span class="text-brandGold font-bold text-sm">₹2,200</span>
+        </label>
+
+        <label class="glass-panel p-5 rounded-2xl flex items-center justify-between cursor-pointer border-white/10 hover:border-brandGold transition-all">
+          <div class="flex items-center gap-4">
+            <input type="checkbox" onchange="recalculateCustomPackage()" data-name="Balayage Chromatic Hair Highlights" data-price="3499" data-time="120" class="package-item w-5 h-5 rounded accent-[#D4AF37]">
+            <div>
+              <h4 class="font-cinzel text-base font-bold text-white">Balayage Chromatic Hair Highlights</h4>
+              <p class="text-xs text-gray-400">Hand-painted multidimensional European color</p>
+            </div>
+          </div>
+          <span class="text-brandGold font-bold text-sm">₹3,499</span>
+        </label>
+
+        <label class="glass-panel p-5 rounded-2xl flex items-center justify-between cursor-pointer border-white/10 hover:border-brandGold transition-all">
+          <div class="flex items-center gap-4">
+            <input type="checkbox" onchange="recalculateCustomPackage()" data-name="Organic Stem-Cell Hair Spa Ritual" data-price="1200" data-time="45" class="package-item w-5 h-5 rounded accent-[#D4AF37]">
+            <div>
+              <h4 class="font-cinzel text-base font-bold text-white">Organic Stem-Cell Hair Spa Ritual</h4>
+              <p class="text-xs text-gray-400">Deep scalp hydration and anti-frizz sealing</p>
+            </div>
+          </div>
+          <span class="text-brandGold font-bold text-sm">₹1,200</span>
+        </label>
+
+      </div>
+
+      <!-- Live Summary & Estimated Bill Card -->
+      <div class="lg:col-span-4 glass-panel p-7 rounded-3xl border-brandGold/50 sticky top-28 shadow-2xl bg-black/80">
+        <div class="flex items-center justify-between border-b border-white/10 pb-4 mb-6">
+          <span class="font-cinzel text-lg font-bold text-white">Package Receipt</span>
+          <span class="text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-full font-bold">15% SAVINGS</span>
+        </div>
+
+        <div id="selectedServicesList" class="space-y-2.5 text-xs text-gray-300 mb-6">
+          <!-- Dynamically populated via JS -->
+        </div>
+
+        <div class="space-y-2 border-t border-white/10 pt-4 text-xs">
+          <div class="flex justify-between text-gray-400">
+            <span>Total Duration:</span>
+            <span id="pkgTotalTime" class="text-white font-medium">135 min</span>
+          </div>
+          <div class="flex justify-between text-gray-400">
+            <span>Standard Menu Price:</span>
+            <span id="pkgOriginalPrice" class="text-gray-400 line-through">₹3,300</span>
+          </div>
+          <div class="flex justify-between text-emerald-400 font-medium">
+            <span>Privilege Discount (15%):</span>
+            <span id="pkgDiscountAmount">- ₹495</span>
+          </div>
+          <div class="flex justify-between items-baseline pt-3 border-t border-white/10">
+            <span class="text-sm font-cinzel font-bold text-white">Total Package Fee:</span>
+            <span id="pkgFinalPrice" class="text-2xl font-cinzel font-black text-brandGold">₹2,805</span>
+          </div>
+        </div>
+
+        <button onclick="bookCustomPackage()" class="w-full mt-6 bg-gradient-to-r from-brandGold to-brandGoldDark text-black font-bold py-3.5 rounded-xl text-xs sm:text-sm shadow-xl shadow-brandGold/25 hover:scale-105 transition-all flex items-center justify-center gap-2">
+          <i class="fa-solid fa-calendar-check"></i>
+          <span>Lock Custom Package Slot</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. PHILOSOPHY & ABOUT -->
+  <section id="about" class="py-24 px-6 border-b border-white/5">
+    <div class="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center reveal">
+      <div class="relative">
+        <div class="rounded-3xl overflow-hidden glass-panel p-2 shadow-2xl">
+          <img src="https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=1000&q=80" alt="Salon Interior" class="w-full h-[400px] object-cover rounded-2xl">
+        </div>
+        <div class="absolute -bottom-6 -right-4 glass-panel p-6 rounded-2xl shadow-2xl hidden sm:block border-brandGold/40">
+          <p class="text-3xl font-cinzel font-bold text-brandGold">12+ Years</p>
+          <p class="text-xs text-gray-300 uppercase tracking-wider">Of Haute Coiffure</p>
+        </div>
+      </div>
+
+      <div>
+        <span class="text-brandGold text-xs uppercase tracking-widest font-semibold">The APEX Philosophy</span>
+        <h2 class="text-3xl sm:text-4xl font-cinzel font-bold text-white mt-2 mb-6">Bespoke Aesthetics Designed Around You</h2>
+        <p class="text-gray-400 text-sm leading-relaxed mb-6">
+          Founded on the principle of precision craftsmanship, APEX Salon & Spa combines world-class styling methodologies with organic botanical luxury. Every cut, color transition, and dermal treatment is customized to reflect your lifestyle.
+        </p>
+        
+        <div class="grid grid-cols-2 gap-6 pt-4 border-t border-white/10">
+          <div class="glass-panel p-4 rounded-xl">
+            <h4 class="font-cinzel text-base font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-check text-brandGold text-sm"></i> Master Directors
+            </h4>
+            <p class="text-xs text-gray-400 mt-1">Trained by international academies across Europe.</p>
+          </div>
+          <div class="glass-panel p-4 rounded-xl">
+            <h4 class="font-cinzel text-base font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-check text-brandGold text-sm"></i> Clean Chemistry
+            </h4>
+            <p class="text-xs text-gray-400 mt-1">Sulphate-free, non-toxic & cruelty-free care.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. SANCTUARY STANDARDS & CLINICAL HYGIENE -->
+  <section class="py-24 px-6 max-w-7xl mx-auto border-b border-white/5">
+    <div class="text-center max-w-2xl mx-auto mb-16 reveal">
+      <span class="text-brandGold text-xs uppercase tracking-widest font-semibold">Hospitality & Hygiene</span>
+      <h2 class="text-3xl sm:text-4xl font-cinzel font-bold text-white mt-2">The APEX Sanctuary Standards</h2>
+      <div class="w-16 h-0.5 bg-brandGold mx-auto mt-4 mb-4"></div>
+      <p class="text-gray-400 text-xs sm:text-sm">We combine clinic-grade hygiene with ultra-luxurious private suite hospitality for our discerning clientele.</p>
+    </div>
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 reveal">
+      <div class="glass-panel glass-card-hover p-7 rounded-2xl text-center">
+        <div class="w-14 h-14 rounded-2xl bg-brandGold/10 text-brandGold text-2xl flex items-center justify-center mx-auto mb-5 border border-brandGold/20">
+          <i class="fa-solid fa-pump-medical"></i>
+        </div>
+        <h4 class="font-cinzel text-base font-bold text-white mb-2">Hospital-Grade Autoclave</h4>
+        <p class="text-xs text-gray-400 leading-relaxed">All metallic shears and instruments undergo medical-grade ultrasonic and UV sterilization.</p>
+      </div>
+
+      <div class="glass-panel glass-card-hover p-7 rounded-2xl text-center">
+        <div class="w-14 h-14 rounded-2xl bg-brandGold/10 text-brandGold text-2xl flex items-center justify-center mx-auto mb-5 border border-brandGold/20">
+          <i class="fa-solid fa-shield-virus"></i>
+        </div>
+        <h4 class="font-cinzel text-base font-bold text-white mb-2">Single-Use Sealed Kits</h4>
+        <p class="text-xs text-gray-400 leading-relaxed">Fresh sealed biodegradable towels, capes, and manicure tools unboxed directly before your service.</p>
+      </div>
+
+      <div class="glass-panel glass-card-hover p-7 rounded-2xl text-center">
+        <div class="w-14 h-14 rounded-2xl bg-brandGold/10 text-brandGold text-2xl flex items-center justify-center mx-auto mb-5 border border-brandGold/20">
+          <i class="fa-solid fa-door-closed"></i>
+        </div>
+        <h4 class="font-cinzel text-base font-bold text-white mb-2">Private VIP Suites</h4>
+        <p class="text-xs text-gray-400 leading-relaxed">Exclusive secluded styling chambers for high-profile patrons, bridal parties, and executives.</p>
+      </div>
+
+      <div class="glass-panel glass-card-hover p-7 rounded-2xl text-center">
+        <div class="w-14 h-14 rounded-2xl bg-brandGold/10 text-brandGold text-2xl flex items-center justify-center mx-auto mb-5 border border-brandGold/20">
+          <i class="fa-solid fa-mug-hot"></i>
+        </div>
+        <h4 class="font-cinzel text-base font-bold text-white mb-2">Artisan Espresso Bar</h4>
+        <p class="text-xs text-gray-400 leading-relaxed">Fresh gourmet espresso, organic matcha latte, and botanical infusion teas served complimentary.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. BRIDAL & GROOM COUTURE CONSULTATION SUITE -->
+  <section id="bridal" class="py-24 px-6 max-w-7xl mx-auto border-b border-white/5">
+    <div class="glass-panel p-8 sm:p-14 rounded-3xl relative overflow-hidden reveal">
+      <div class="text-center max-w-3xl mx-auto mb-14">
+        <span class="inline-flex items-center gap-2 py-1 px-4 rounded-full bg-brandGold/10 border border-brandGold/30 text-brandGold text-xs font-semibold uppercase tracking-widest mb-3">
+          <i class="fa-solid fa-ring"></i> Imperial Wedding Chapter
+        </span>
+        <h2 class="text-3xl sm:text-5xl font-cinzel font-bold text-white leading-tight">
+          Haute Bridal & Groom <br>
+          <span class="gold-gradient-text">Couture Makeover Suite</span>
+        </h2>
+        <p class="text-gray-300 text-sm mt-3 leading-relaxed font-light">
+          Your wedding day deserves immaculate grandeur. We curate end-to-end bespoke beauty itineraries spanning pre-wedding rejuvenation rituals to runway-worthy reception styling.
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="glass-panel p-6 rounded-2xl border-white/10 relative">
+          <span class="text-xs font-bold text-brandGold uppercase tracking-widest">Phase 01 &bull; 4 Weeks Prior</span>
+          <h4 class="font-cinzel text-lg font-bold text-white mt-1 mb-3">Dermal & Hair Reset</h4>
+          <p class="text-xs text-gray-400 leading-relaxed mb-4">Deep scalp detox, nanoplastia cuticle alignment, and sequential oxygen glow facials to ensure camera-ready radiance.</p>
+          <span class="text-[11px] text-gray-500 block"><i class="fa-solid fa-check text-brandGold mr-1"></i> Includes Skin Biometrics Test</span>
+        </div>
+
+        <div class="glass-panel p-6 rounded-2xl border-brandGold/40 bg-black/60 relative">
+          <span class="text-xs font-bold text-brandGold uppercase tracking-widest">Phase 02 &bull; 1 Week Prior</span>
+          <h4 class="font-cinzel text-lg font-bold text-white mt-1 mb-3">Chromatic Polish & Trial</h4>
+          <p class="text-xs text-gray-400 leading-relaxed mb-4">Final Balayage glossing, custom nail architecture, trial veil setting, and tailored groom beard sculpting.</p>
+          <span class="text-[11px] text-brandGold block"><i class="fa-solid fa-check mr-1"></i> Full Look Simulation Session</span>
+        </div>
+
+        <div class="glass-panel p-6 rounded-2xl border-white/10 relative">
+          <span class="text-xs font-bold text-brandGold uppercase tracking-widest">Phase 03 &bull; Wedding Day</span>
+          <h4 class="font-cinzel text-lg font-bold text-white mt-1 mb-3">The Imperial Transformation</h4>
+          <p class="text-xs text-gray-400 leading-relaxed mb-4">Dedicated private VIP suite, airbrush HD makeup artistry, jewelry anchoring, and private lounge catering.</p>
+          <span class="text-[11px] text-gray-500 block"><i class="fa-solid fa-check text-brandGold mr-1"></i> Dedicated Concierge Attendant</span>
+        </div>
+      </div>
+
+      <div class="mt-10 text-center">
+        <a href="https://wa.me/919876543210?text=Hello%20APEX%20Salon,%20I%20want%20to%20consult%20for%20a%20Bespoke%20Bridal/Groom%20Package." target="_blank" class="inline-flex items-center gap-2 bg-gradient-to-r from-brandGold to-brandGoldDark text-black font-bold px-8 py-3.5 rounded-xl text-xs sm:text-sm shadow-xl shadow-brandGold/20 hover:scale-105 transition-all">
+          <i class="fa-brands fa-whatsapp text-base"></i>
+          <span>Schedule Bridal Director Consultation</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. DIGITAL SCALP & HAIR DIAGNOSTIC PROTOCOL -->
+  <section id="diagnostics" class="py-24 px-6 max-w-7xl mx-auto border-b border-white/5">
+    <div class="grid lg:grid-cols-2 gap-12 items-center reveal">
+      <div>
+        <span class="text-brandGold text-xs uppercase tracking-widest font-semibold">Clinical Trichology</span>
+        <h2 class="text-3xl sm:text-4xl font-cinzel font-bold text-white mt-2 mb-6">Digital Scalp & Hair Diagnostics</h2>
+        <p class="text-gray-400 text-sm leading-relaxed mb-6">
+          Every hair transformation at APEX begins with cellular diagnosis. Using 200x polarized micro-cameras, our specialists evaluate scalp sebum levels, follicular density, and keratin porosity before suggesting treatments.
+        </p>
+        
+        <div class="space-y-4 text-xs">
+          <div class="glass-panel p-4 rounded-xl flex items-center gap-4">
+            <div class="w-10 h-10 rounded-lg bg-brandGold/10 text-brandGold flex items-center justify-center shrink-0 text-base">
+              <i class="fa-solid fa-microscope"></i>
+            </div>
+            <div>
+              <h4 class="font-bold text-white">200X Optical Analysis</h4>
+              <p class="text-gray-400 mt-0.5">High-definition inspection of cuticle integrity and follicle breathing room.</p>
+            </div>
+          </div>
+
+          <div class="glass-panel p-4 rounded-xl flex items-center gap-4">
+            <div class="w-10 h-10 rounded-lg bg-brandGold/10 text-brandGold flex items-center justify-center shrink-0 text-base">
+              <i class="fa-solid fa-flask-vial"></i>
+            </div>
+            <div>
+              <h4 class="font-bold text-white">Custom Peptide Serum Blending</h4>
+              <p class="text-gray-400 mt-0.5">Formulating exact amino-acid doses tailored precisely to your diagnostic score.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="relative">
+        <div class="glass-panel p-6 rounded-3xl border-brandGold/40 shadow-2xl">
+          <img src="https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?auto=format&fit=crop&w=1000&q=80" alt="Trichology Diagnostic Lab" class="w-full h-[360px] object-cover rounded-2xl">
+          <div class="mt-4 flex items-center justify-between text-xs text-gray-300">
+            <span class="font-cinzel text-brandGold font-bold">APEX Trichology Suite</span>
+            <span class="text-[11px] text-gray-500">Certified Trichologists on Site</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8. 3D INTERACTIVE FLIP-CARDS (FLIP-FLOP MOTION) -->
+  <section id="flip-services" class="py-24 px-6 max-w-7xl mx-auto border-b border-white/5">
+    <div class="text-center max-w-2xl mx-auto mb-16 reveal">
+      <span class="text-brandGold text-xs uppercase tracking-widest font-semibold">3D Kinetic Experience</span>
+      <h2 class="text-3xl sm:text-4xl font-cinzel font-bold text-white mt-2">Haute Couture 3D Portfolio</h2>
+      <div class="w-16 h-0.5 bg-brandGold mx-auto mt-4 mb-4"></div>
+      <p class="text-gray-400 text-xs sm:text-sm">Hover over or tap any card to flip in 3D space and reveal the underlying formulation rituals and steps.</p>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-8 reveal">
+      
+      <!-- 3D FLIP CARD 1 -->
+      <div class="flip-card-container h-[430px]">
+        <div class="flip-card-inner">
+          <div class="flip-card-front glass-panel p-8 flex flex-col justify-between border-brandGold/30">
+            <div>
+              <div class="flex justify-between items-start mb-6">
+                <div class="w-12 h-12 rounded-xl bg-brandGold/10 text-brandGold flex items-center justify-center text-xl">
+                  <i class="fa-solid fa-scissors"></i>
+                </div>
+                <span class="text-xs bg-brandGold/10 text-brandGold font-bold px-3 py-1 rounded-full uppercase tracking-wider">Hover to Flip</span>
+              </div>
+              <h3 class="text-2xl font-cinzel font-bold text-white mb-2">Couture Hair Architecture</h3>
+              <p class="text-gray-400 text-xs leading-relaxed mb-4">Precision geometric sectioning and texture elevation engineered to harmonize with facial bone structure.</p>
+              <div class="space-y-2 text-xs border-t border-white/10 pt-4">
+                <div class="flex justify-between"><span class="text-gray-300">Director's Cut</span><span class="text-brandGold font-bold">₹650</span></div>
+                <div class="flex justify-between"><span class="text-gray-300">Balayage / Ombre</span><span class="text-brandGold font-bold">₹3,499+</span></div>
+                <div class="flex justify-between"><span class="text-gray-300">Nanoplastia</span><span class="text-brandGold font-bold">₹4,999+</span></div>
+              </div>
+            </div>
+            <p class="text-[11px] text-gray-500 text-center"><i class="fa-solid fa-arrows-rotate text-brandGold mr-1"></i> Flip card for protocol details</p>
+          </div>
+
+          <div class="flip-card-back glass-panel p-8 flex flex-col justify-between border-brandGold/60 bg-black/90">
+            <div>
+              <span class="text-[10px] uppercase tracking-widest text-brandGold font-bold block mb-1">Ritual Architecture</span>
+              <h4 class="font-cinzel text-lg font-bold text-white mb-4">Precision 4-Step Protocol</h4>
+              <ul class="space-y-3 text-xs text-gray-300">
+                <li class="flex items-start gap-2"><i class="fa-solid fa-circle-check text-brandGold mt-0.5"></i> <span>Aesthetic Geometry Mapping with Director</span></li>
+                <li class="flex items-start gap-2"><i class="fa-solid fa-circle-check text-brandGold mt-0.5"></i> <span>Aromatherapy Hot-Towel Scalp Cleanse</span></li>
+                <li class="flex items-start gap-2"><i class="fa-solid fa-circle-check text-brandGold mt-0.5"></i> <span>Custom Japanese Shears Texturizing</span></li>
+                <li class="flex items-start gap-2"><i class="fa-solid fa-circle-check text-brandGold mt-0.5"></i> <span>Weightless Keratin Elixir & Cold Air Lock</span></li>
+              </ul>
+            </div>
+            <a href="#scheduler" class="w-full py-3 rounded-xl bg-brandGold text-black font-bold text-xs text-center shadow-lg shadow-brandGold/20 hover:bg-brandGoldDark transition-all">
+              Reserve This Treatment
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3D FLIP CARD 2 -->
+      <div class="flip-card-container h-[430px]">
+        <div class="flip-card-inner">
+          <div class="flip-card-front glass-panel p-8 flex flex-col justify-between border-brandGold/30">
+            <div>
+              <div class="flex justify-between items-start mb-6">
+                <div class="w-12 h-12 rounded-xl bg-brandGold/10 text-brandGold flex items-center justify-center text-xl">
+                  <i class="fa-solid fa-sparkles"></i>
+                </div>
+                <span class="text-xs bg-brandGold/10 text-brandGold font-bold px-3 py-1 rounded-full uppercase tracking-wider">Hover to Flip</span>
+              </div>
+              <h3 class="text-2xl font-cinzel font-bold text-white mb-2">Dermal & Facial Alchemy</h3>
+              <p class="text-gray-400 text-xs leading-relaxed mb-4">Non-invasive clinical dermabrasion and medical-grade peptide infusion delivering instant glass radiance.</p>
+              <div class="space-y-2 text-xs border-t border-white/10 pt-4">
+                <div class="flex justify-between"><span class="text-gray-300">Hydra-Infusion</span><span class="text-brandGold font-bold">₹2,200</span></div>
+                <div class="flex justify-between"><span class="text-gray-300">24K Gold Stem Cell</span><span class="text-brandGold font-bold">₹2,800</span></div>
+                <div class="flex justify-between"><span class="text-gray-300">Deep Pore Cleanse</span><span class="text-brandGold font-bold">₹950</span></div>
+              </div>
+            </div>
+            <p class="text-[11px] text-gray-500 text-center"><i class="fa-solid fa-arrows-rotate text-brandGold mr-1"></i> Flip card for protocol details</p>
+          </div>
+
+          <div class="flip-card-back glass-panel p-8 flex flex-col justify-between border-brandGold/60 bg-black/90">
+            <div>
+              <span class="text-[10px] uppercase tracking-widest text-brandGold font-bold block mb-1">Cellular Protocol</span>
+              <h4 class="font-cinzel text-lg font-bold text-white mb-4">Dermal Infusion Stages</h4>
+              <ul class="space-y-3 text-xs text-gray-300">
+                <li class="flex items-start gap-2"><i class="fa-solid fa-circle-check text-brandGold mt-0.5"></i> <span>Aesthetician Skin pH & Hydration Test</span></li>
+                <li class="flex items-start gap-2"><i class="fa-solid fa-circle-check text-brandGold mt-0.5"></i> <span>Sonic Vacuum Extraction of Impurities</span></li>
+                <li class="flex items-start gap-2"><i class="fa-solid fa-circle-check text-brandGold mt-0.5"></i> <span>Micro-Current Lymphatic Drainage Massage</span></li>
+                <li class="flex items-start gap-2"><i class="fa-solid fa-circle-check text-brandGold mt-0.5"></i> <span>Bio-Cellulose Stem Cell Cryo Seal Mask</span></li>
+              </ul>
+            </div>
+            <a href="#scheduler" class="w-full py-3 rounded-xl bg-brandGold text-black font-bold text-xs text-center shadow-lg shadow-brandGold/20 hover:bg-brandGoldDark transition-all">
+              Reserve This Treatment
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3D FLIP CARD 3 -->
+      <div class="flip-card-container h-[430px]">
+        <div class="flip-card-inner">
+          <div class="flip-card-front glass-panel p-8 flex flex-col justify-between border-brandGold/30">
+            <div>
+              <div class="flex justify-between items-start mb-6">
+                <div class="w-12 h-12 rounded-xl bg-brandGold/10 text-brandGold flex items-center justify-center text-xl">
+                  <i class="fa-solid fa-crown"></i>
+                </div>
+                <span class="text-xs bg-brandGold/10 text-brandGold font-bold px-3 py-1 rounded-full uppercase tracking-wider">Hover to Flip</span>
+              </div>
+              <h3 class="text-2xl font-cinzel font-bold text-white mb-2">Bridal & Imperial Groom</h3>
+              <p class="text-gray-400 text-xs leading-relaxed mb-4">Celebrity-tier wedding transformation in private suites with dedicated styling concierges.</p>
+              <div class="space-y-2 text-xs border-t border-white/10 pt-4">
+                <div class="flex justify-between"><span class="text-gray-300">HD Airbrush Bridal</span><span class="text-brandGold font-bold">₹14,999</span></div>
+                <div class="flex justify-between"><span class="text-gray-300">Royal Groom Suite</span><span class="text-brandGold font-bold">₹5,499</span></div>
+                <div class="flex justify-between"><span class="text-gray-300">Pre-Wedding Revamp</span><span class="text-brandGold font-bold">₹7,999</span></div>
+              </div>
+            </div>
+            <p class="text-[11px] text-gray-500 text-center"><i class="fa-solid fa-arrows-rotate text-brandGold mr-1"></i> Flip card for protocol details</p>
+          </div>
+
+          <div class="flip-card-back glass-panel p-8 flex flex-col justify-between border-brandGold/60 bg-black/90">
+            <div>
+              <span class="text-[10px] uppercase tracking-widest text-brandGold font-bold block mb-1">VIP Hospitality</span>
+              <h4 class="font-cinzel text-lg font-bold text-white mb-4">Wedding Suite Perks</h4>
+              <ul class="space-y-3 text-xs text-gray-300">
+                <li class="flex items-start gap-2"><i class="fa-solid fa-circle-check text-brandGold mt-0.5"></i> <span>Private Secluded Dressing Chamber</span></li>
+                <li class="flex items-start gap-2"><i class="fa-solid fa-circle-check text-brandGold mt-0.5"></i> <span>High-Definition Waterproof Airbrush Blend</span></li>
+                <li class="flex items-start gap-2"><i class="fa-solid fa-circle-check text-brandGold mt-0.5"></i> <span>Groom Beard Architecture & Acupressure</span></li>
+                <li class="flex items-start gap-2"><i class="fa-solid fa-circle-check text-brandGold mt-0.5"></i> <span>On-Demand Espresso & Beverage Concierge</span></li>
+              </ul>
+            </div>
+            <a href="#scheduler" class="w-full py-3 rounded-xl bg-brandGold text-black font-bold text-xs text-center shadow-lg shadow-brandGold/20 hover:bg-brandGoldDark transition-all">
+              Reserve This Treatment
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 9. THE 4-STEP GROOMING RITUAL -->
+  <section id="rituals" class="py-24 px-6 max-w-7xl mx-auto border-b border-white/5">
+    <div class="text-center max-w-2xl mx-auto mb-16 reveal">
+      <span class="text-brandGold text-xs uppercase tracking-widest font-semibold">The Experience Flow</span>
+      <h2 class="text-3xl sm:text-4xl font-cinzel font-bold text-white mt-2">The Signature 4-Step Ritual</h2>
+      <div class="w-16 h-0.5 bg-brandGold mx-auto mt-4 mb-4"></div>
+      <p class="text-gray-400 text-xs sm:text-sm">Every visit to APEX is an orchestrated wellness journey engineered for flawless transformation.</p>
+    </div>
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 reveal">
+      <div class="glass-panel glass-card-hover p-7 rounded-2xl relative">
+        <span class="font-cinzel text-4xl font-black text-brandGold/30 block mb-3">01</span>
+        <h3 class="font-cinzel text-lg font-bold text-white mb-2">Aesthetic Consultation</h3>
+        <p class="text-xs text-gray-400 leading-relaxed">Comprehensive facial structure mapping, skin pH diagnostics, and bespoke routine planning.</p>
+      </div>
+
+      <div class="glass-panel glass-card-hover p-7 rounded-2xl relative">
+        <span class="font-cinzel text-4xl font-black text-brandGold/30 block mb-3">02</span>
+        <h3 class="font-cinzel text-lg font-bold text-white mb-2">Aromatherapy Wash</h3>
+        <p class="text-xs text-gray-400 leading-relaxed">Invigorating botanical cleanse with heated towel acupressure and essential oil relaxation.</p>
+      </div>
+
+      <div class="glass-panel glass-card-hover p-7 rounded-2xl relative">
+        <span class="font-cinzel text-4xl font-black text-brandGold/30 block mb-3">03</span>
+        <h3 class="font-cinzel text-lg font-bold text-white mb-2">Master Craft Execution</h3>
+        <p class="text-xs text-gray-400 leading-relaxed">Precision geometric cutting or dermal infusion curated specifically by your chosen director.</p>
+      </div>
+
+      <div class="glass-panel glass-card-hover p-7 rounded-2xl relative">
+        <span class="font-cinzel text-4xl font-black text-brandGold/30 block mb-3">04</span>
+        <h3 class="font-cinzel text-lg font-bold text-white mb-2">Finishing Elixir</h3>
+        <p class="text-xs text-gray-400 leading-relaxed">Weightless serum locking, micro-mist hydration, and personalized home maintenance guidance.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10. MASTER ARTISTS SHOWCASE -->
+  <section id="stylists" class="py-24 px-6 max-w-7xl mx-auto border-b border-white/5">
+    <div class="text-center max-w-2xl mx-auto mb-16 reveal">
+      <span class="text-brandGold text-xs uppercase tracking-widest font-semibold">Artistic Directors</span>
+      <h2 class="text-3xl sm:text-4xl font-cinzel font-bold text-white mt-2">Meet Our Master Stylists</h2>
+      <div class="w-16 h-0.5 bg-brandGold mx-auto mt-4 mb-4"></div>
+      <p class="text-gray-400 text-xs sm:text-sm">World-class artisans with specialized mastery in hair architecture, color chemistry, and dermal rejuvenation.</p>
+    </div>
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 reveal">
+      <div class="glass-panel rounded-2xl overflow-hidden group hover:border-brandGold transition-all duration-300">
+        <div class="aspect-[3/4] overflow-hidden relative">
+          <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=700&q=80" alt="Aryan Mehta" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+          <span class="absolute top-3 right-3 bg-black/80 text-brandGold text-[11px] font-bold px-2.5 py-1 rounded-full border border-brandGold/40 flex items-center gap-1">
+            <i class="fa-solid fa-star text-[10px]"></i> 4.9
+          </span>
+        </div>
+        <div class="p-5">
+          <h3 class="font-cinzel text-lg font-bold text-white">Aryan Mehta</h3>
+          <p class="text-brandGold text-xs font-medium mb-2">Creative Hair Director</p>
+          <p class="text-gray-400 text-xs leading-relaxed mb-4">10+ years experience. Specialist in precision fades, textured couture cuts, and European balayage.</p>
+          <a href="#scheduler" onclick="quickSelectStylist('Aryan Mehta')" class="block text-center w-full py-2 rounded-lg glass-panel hover:bg-brandGold hover:text-black text-xs font-semibold transition-all">
+            Book With Aryan
+          </a>
+        </div>
+      </div>
+
+      <div class="glass-panel rounded-2xl overflow-hidden group hover:border-brandGold transition-all duration-300">
+        <div class="aspect-[3/4] overflow-hidden relative">
+          <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=700&q=80" alt="Maya Patel" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+          <span class="absolute top-3 right-3 bg-black/80 text-brandGold text-[11px] font-bold px-2.5 py-1 rounded-full border border-brandGold/40 flex items-center gap-1">
+            <i class="fa-solid fa-star text-[10px]"></i> 5.0
+          </span>
+        </div>
+        <div class="p-5">
+          <h3 class="font-cinzel text-lg font-bold text-white">Maya Patel</h3>
+          <p class="text-brandGold text-xs font-medium mb-2">Senior Chromatic Specialist</p>
+          <p class="text-gray-400 text-xs leading-relaxed mb-4">Toni&Guy certified. Master in dimensional ombre, pastel tones, and corrective color alchemy.</p>
+          <a href="#scheduler" onclick="quickSelectStylist('Maya Patel')" class="block text-center w-full py-2 rounded-lg glass-panel hover:bg-brandGold hover:text-black text-xs font-semibold transition-all">
+            Book With Maya
+          </a>
+        </div>
+      </div>
+
+      <div class="glass-panel rounded-2xl overflow-hidden group hover:border-brandGold transition-all duration-300">
+        <div class="aspect-[3/4] overflow-hidden relative">
+          <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=700&q=80" alt="Kabir Verma" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+          <span class="absolute top-3 right-3 bg-black/80 text-brandGold text-[11px] font-bold px-2.5 py-1 rounded-full border border-brandGold/40 flex items-center gap-1">
+            <i class="fa-solid fa-star text-[10px]"></i> 4.9
+          </span>
+        </div>
+        <div class="p-5">
+          <h3 class="font-cinzel text-lg font-bold text-white">Kabir Verma</h3>
+          <p class="text-brandGold text-xs font-medium mb-2">Beard Sculptor & Spa Master</p>
+          <p class="text-gray-400 text-xs leading-relaxed mb-4">Royal bespoke grooming expert. Specializes in luxury hot-towel shaves and scalp massages.</p>
+          <a href="#scheduler" onclick="quickSelectStylist('Kabir Verma')" class="block text-center w-full py-2 rounded-lg glass-panel hover:bg-brandGold hover:text-black text-xs font-semibold transition-all">
+            Book With Kabir
+          </a>
+        </div>
+      </div>
+
+      <div class="glass-panel rounded-2xl overflow-hidden group hover:border-brandGold transition-all duration-300">
+        <div class="aspect-[3/4] overflow-hidden relative">
+          <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=700&q=80" alt="Dr. Alisha Roy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+          <span class="absolute top-3 right-3 bg-black/80 text-brandGold text-[11px] font-bold px-2.5 py-1 rounded-full border border-brandGold/40 flex items-center gap-1">
+            <i class="fa-solid fa-star text-[10px]"></i> 5.0
+          </span>
+        </div>
+        <div class="p-5">
+          <h3 class="font-cinzel text-lg font-bold text-white">Dr. Alisha Roy</h3>
+          <p class="text-brandGold text-xs font-medium mb-2">Aesthetic Dermal Consultant</p>
+          <p class="text-gray-400 text-xs leading-relaxed mb-4">Dermatology aesthetician. Expert in non-invasive hydra infusions and anti-aging therapies.</p>
+          <a href="#scheduler" onclick="quickSelectStylist('Dr. Alisha Roy')" class="block text-center w-full py-2 rounded-lg glass-panel hover:bg-brandGold hover:text-black text-xs font-semibold transition-all">
+            Book With Alisha
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 11. VIP PRIVILEGE MEMBERSHIPS -->
+  <section id="memberships" class="py-24 px-6 max-w-7xl mx-auto border-b border-white/5">
+    <div class="text-center max-w-2xl mx-auto mb-16 reveal">
+      <span class="text-brandGold text-xs uppercase tracking-widest font-semibold">Tiered Loyalty Suite</span>
+      <h2 class="text-3xl sm:text-4xl font-cinzel font-bold text-white mt-2">The APEX Privilege Club</h2>
+      <div class="w-16 h-0.5 bg-brandGold mx-auto mt-4 mb-4"></div>
+      <p class="text-gray-400 text-xs sm:text-sm">Enjoy year-round luxury grooming privileges, guaranteed priority slot reservations, and private lounge access.</p>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-8 reveal">
+      <div class="glass-panel glass-card-hover p-8 rounded-2xl relative border-white/10">
+        <span class="text-xs uppercase tracking-widest text-gray-400 font-semibold">Essential Tier</span>
+        <h3 class="text-2xl font-cinzel font-bold text-white mt-1">Silver Privilege</h3>
+        <p class="text-3xl font-cinzel font-black text-brandGold mt-4">₹9,999 <span class="text-xs text-gray-400 font-normal">/ Year</span></p>
+        
+        <ul class="space-y-3.5 my-8 text-xs text-gray-300 border-t border-white/10 pt-6">
+          <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-brandGold"></i> 10% Flat Discount on all Hair & Grooming</li>
+          <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-brandGold"></i> 2 Complimentary Organic Hair Spas</li>
+          <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-brandGold"></i> Birthday Week Surprise Makeover Gift</li>
+          <li class="flex items-center gap-2.5 text-gray-500"><i class="fa-solid fa-xmark"></i> Dedicated Private Suite Access</li>
+        </ul>
+
+        <a href="https://wa.me/919876543210?text=Hello%20APEX%20Salon,%20I%20want%20to%20enroll%20in%20Silver%20Privilege%20Membership." target="_blank" class="block text-center w-full py-3 rounded-xl glass-panel hover:bg-brandGold hover:text-black font-bold text-xs transition-all">
+          Inquire For Silver
+        </a>
+      </div>
+
+      <div class="glass-panel glass-card-hover p-8 rounded-2xl relative border-brandGold/60 shadow-2xl scale-105 bg-black/80">
+        <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-brandGold text-black font-extrabold text-[10px] uppercase tracking-widest py-1 px-4 rounded-full shadow-lg">
+          Most Coveted
+        </div>
+        <span class="text-xs uppercase tracking-widest text-brandGold font-semibold">Signature Tier</span>
+        <h3 class="text-2xl font-cinzel font-bold text-white mt-1">Gold Royal Pass</h3>
+        <p class="text-3xl font-cinzel font-black text-brandGold mt-4">₹19,999 <span class="text-xs text-gray-400 font-normal">/ Year</span></p>
+        
+        <ul class="space-y-3.5 my-8 text-xs text-gray-200 border-t border-white/10 pt-6">
+          <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-brandGold"></i> 20% Flat Discount on All Salon & Dermal Services</li>
+          <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-brandGold"></i> 4 Complimentary Hydra Glow & Spa Sessions</li>
+          <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-brandGold"></i> Guaranteed Priority Booking with Director Aryan</li>
+          <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-brandGold"></i> Unlimited Artisan Beverage Lounge Pass</li>
+        </ul>
+
+        <a href="https://wa.me/919876543210?text=Hello%20APEX%20Salon,%20I%20want%20to%20enroll%20in%20Gold%20Royal%20Pass." target="_blank" class="block text-center w-full py-3 rounded-xl bg-gradient-to-r from-brandGold to-brandGoldDark text-black font-bold text-xs transition-all shadow-lg shadow-brandGold/30">
+          Enroll In Gold Pass
+        </a>
+      </div>
+
+      <div class="glass-panel glass-card-hover p-8 rounded-2xl relative border-white/10">
+        <span class="text-xs uppercase tracking-widest text-gray-400 font-semibold">Imperial Tier</span>
+        <h3 class="text-2xl font-cinzel font-bold text-white mt-1">Imperial Black</h3>
+        <p class="text-3xl font-cinzel font-black text-brandGold mt-4">₹39,999 <span class="text-xs text-gray-400 font-normal">/ Year</span></p>
+        
+        <ul class="space-y-3.5 my-8 text-xs text-gray-300 border-t border-white/10 pt-6">
+          <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-brandGold"></i> 30% Privilege on Entire Menu for Family (Up to 3)</li>
+          <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-brandGold"></i> 8 Full-Spectrum Rejuvenation Rituals</li>
+          <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-brandGold"></i> Exclusive Private Suite Reservation for Every Visit</li>
+          <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-brandGold"></i> Complimentary Wedding Guest Makeover Voucher</li>
+        </ul>
+
+        <a href="https://wa.me/919876543210?text=Hello%20APEX%20Salon,%20I%20want%20to%20inquire%20about%20Imperial%20Black%20Membership." target="_blank" class="block text-center w-full py-3 rounded-xl glass-panel hover:bg-brandGold hover:text-black font-bold text-xs transition-all">
+          Inquire For Imperial
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 12. VIP IN-SALON CONTACTLESS QR MENU -->
+  <section id="lounge-qr" class="py-24 px-6 max-w-7xl mx-auto border-b border-white/5">
+    <div class="glass-panel p-8 sm:p-14 rounded-3xl relative overflow-hidden reveal">
+      <div class="grid lg:grid-cols-12 gap-10 items-center">
+        
+        <div class="lg:col-span-7 space-y-6">
+          <span class="inline-flex items-center gap-2 py-1 px-3.5 rounded-full bg-brandGold/10 border border-brandGold/30 text-brandGold text-xs font-semibold uppercase tracking-widest">
+            <i class="fa-solid fa-qrcode"></i> Contactless Experience
+          </span>
+          <h2 class="text-3xl sm:text-4xl font-cinzel font-bold text-white leading-tight">
+            VIP Lounge & Instant <br>
+            <span class="gold-gradient-text">In-Salon QR Menu</span>
+          </h2>
+          <p class="text-gray-300 text-sm leading-relaxed font-light">
+            When you relax at our styling station or spa suite, simply scan the tabletop gold acrylic QR placard with your smartphone. Access our complete interactive catalog, therapist profiles, and special seasonal offerings instantly.
+          </p>
+
+          <div class="grid sm:grid-cols-2 gap-4 pt-2">
+            <div class="flex items-start gap-3">
+              <div class="w-8 h-8 rounded-lg bg-brandGold/10 text-brandGold flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-wifi text-xs"></i>
+              </div>
+              <div>
+                <h4 class="text-xs font-bold text-white">Complimentary High-Speed Wi-Fi</h4>
+                <p class="text-[11px] text-gray-400">Instant connection during your service.</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <div class="w-8 h-8 rounded-lg bg-brandGold/10 text-brandGold flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-mug-hot text-xs"></i>
+              </div>
+              <div>
+                <h4 class="text-xs font-bold text-white">Artisanal Beverage Lounge</h4>
+                <p class="text-[11px] text-gray-400">Organic brew teas & espresso bar.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="lg:col-span-5 flex justify-center">
+          <div class="glass-panel p-6 rounded-2xl text-center border-brandGold/40 max-w-xs shadow-2xl relative">
+            <span class="text-[10px] uppercase tracking-widest text-brandGold font-bold">APEX Digital Menu</span>
+            <div class="w-44 h-44 mx-auto my-4 bg-white p-3 rounded-xl shadow-inner flex items-center justify-center">
+              <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https://apex-salon.demo&color=09090b" alt="APEX Digital QR" class="w-full h-full">
+            </div>
+            <p class="text-xs text-gray-300 font-medium">Scan with Phone Camera</p>
+            <span class="text-[10px] text-gray-500 block mt-1">Live In-Salon Synchronization</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- 13. BEFORE / AFTER INTERACTIVE SLIDER -->
+  <section id="transformation" class="py-24 px-6 max-w-7xl mx-auto border-b border-white/5">
+    <div class="text-center max-w-2xl mx-auto mb-16 reveal">
+      <span class="text-brandGold text-xs uppercase tracking-widest font-semibold">Real Results</span>
+      <h2 class="text-3xl sm:text-4xl font-cinzel font-bold text-white mt-2">Interactive Transformation Showcase</h2>
+      <div class="w-16 h-0.5 bg-brandGold mx-auto mt-4 mb-4"></div>
+      <p class="text-gray-400 text-xs sm:text-sm">Drag the gold handle horizontally to examine our signature transformation results.</p>
+    </div>
+
+    <div class="max-w-3xl mx-auto reveal">
+      <div id="baSlider" class="ba-container rounded-2xl glass-panel shadow-2xl h-[380px] sm:h-[460px]">
+        <img src="https://images.unsplash.com/photo-1580618672591-eb180b1a973f?auto=format&fit=crop&w=1200&q=80" alt="After" class="absolute inset-0 w-full h-full object-cover">
+        <span class="absolute top-4 right-4 z-10 bg-black/75 text-brandGold text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider border border-brandGold/40">After APEX</span>
+
+        <div id="baOverlay" class="ba-overlay">
+          <img src="https://images.unsplash.com/photo-1519699047748-de8e457a634e?auto=format&fit=crop&w=1200&q=80" alt="Before" class="absolute top-0 left-0 max-w-none h-full w-[1000px] object-cover filter grayscale contrast-125">
+          <span class="absolute top-4 left-4 z-10 bg-black/75 text-gray-300 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider border border-white/20">Before</span>
+        </div>
+
+        <div id="baHandle" class="ba-handle">
+          <div class="ba-handle-button">
+            <i class="fa-solid fa-arrows-left-right"></i>
+          </div>
+        </div>
+      </div>
+      <p class="text-center text-xs text-gray-500 mt-4"><i class="fa-solid fa-hand-pointer text-brandGold mr-1"></i> Click & drag anywhere to compare</p>
+    </div>
+  </section>
+
+  <!-- 14. PRO STYLIST & LIVE SLOT SCHEDULER -->
+  <section id="scheduler" class="py-24 px-6 max-w-6xl mx-auto border-b border-white/5">
+    <div class="text-center mb-14 reveal">
+      <span class="text-brandGold text-xs uppercase tracking-widest font-semibold">Pro Reservation Engine</span>
+      <h2 class="text-3xl sm:text-4xl font-cinzel font-bold text-white mt-2">Book Your Appointment In 4 Steps</h2>
+      <div class="w-16 h-0.5 bg-brandGold mx-auto mt-4 mb-4"></div>
+      <p class="text-gray-400 text-xs sm:text-sm">Hand-select your preferred stylist, service, and custom time slot.</p>
+    </div>
+
+    <div class="glass-panel rounded-3xl shadow-2xl p-6 sm:p-10 reveal">
+
+      <!-- STEP 1: CHOOSE STYLIST -->
+      <div class="mb-10">
+        <div class="flex items-center gap-3 mb-5">
+          <span class="w-7 h-7 rounded-full bg-brandGold text-black font-bold text-xs flex items-center justify-center">1</span>
+          <h3 class="text-lg font-cinzel font-bold text-white">Select Your Master Stylist</h3>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div onclick="selectStylist(this, 'Aryan Mehta', 'Hair Director')" class="stylist-card selected cursor-pointer glass-panel rounded-xl p-3.5 text-center transition-all">
+            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80" class="w-14 h-14 rounded-full mx-auto object-cover border-2 border-brandGold/40 mb-2">
+            <h4 class="font-bold text-xs sm:text-sm text-white">Aryan Mehta</h4>
+            <span class="text-[10px] text-brandGold block">Hair Director</span>
+          </div>
+
+          <div onclick="selectStylist(this, 'Maya Patel', 'Color Specialist')" class="stylist-card cursor-pointer glass-panel rounded-xl p-3.5 text-center transition-all">
+            <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=200&q=80" class="w-14 h-14 rounded-full mx-auto object-cover border-2 border-brandGold/40 mb-2">
+            <h4 class="font-bold text-xs sm:text-sm text-white">Maya Patel</h4>
+            <span class="text-[10px] text-brandGold block">Color Specialist</span>
+          </div>
+
+          <div onclick="selectStylist(this, 'Kabir Verma', 'Beard & Spa')" class="stylist-card cursor-pointer glass-panel rounded-xl p-3.5 text-center transition-all">
+            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80" class="w-14 h-14 rounded-full mx-auto object-cover border-2 border-brandGold/40 mb-2">
+            <h4 class="font-bold text-xs sm:text-sm text-white">Kabir Verma</h4>
+            <span class="text-[10px] text-brandGold block">Beard & Spa</span>
+          </div>
+
+          <div onclick="selectStylist(this, 'Dr. Alisha Roy', 'Skin Aesthetician')" class="stylist-card cursor-pointer glass-panel rounded-xl p-3.5 text-center transition-all">
+            <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80" class="w-14 h-14 rounded-full mx-auto object-cover border-2 border-brandGold/40 mb-2">
+            <h4 class="font-bold text-xs sm:text-sm text-white">Dr. Alisha</h4>
+            <span class="text-[10px] text-brandGold block">Skin Aesthetician</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 2: SELECT SERVICE -->
+      <div class="mb-10 border-t border-white/10 pt-8">
+        <div class="flex items-center gap-3 mb-5">
+          <span class="w-7 h-7 rounded-full bg-brandGold text-black font-bold text-xs flex items-center justify-center">2</span>
+          <h3 class="text-lg font-cinzel font-bold text-white">Select Service Package</h3>
+        </div>
+
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div onclick="selectService(this, 'Signature Haircut & Style', '₹450', '45 min')" class="service-card selected cursor-pointer glass-panel rounded-xl p-4 transition-all">
+            <div class="flex justify-between items-start mb-2">
+              <i class="fa-solid fa-scissors text-brandGold text-lg"></i>
+              <span class="text-xs bg-brandGold/10 text-brandGold px-2 py-0.5 rounded font-semibold">45 min</span>
+            </div>
+            <h4 class="font-semibold text-sm text-white">Signature Haircut</h4>
+            <p class="text-[11px] text-gray-400 mt-1">Wash, consultation & styling</p>
+            <p class="text-sm font-bold text-brandGold mt-3">₹450</p>
+          </div>
+
+          <div onclick="selectService(this, 'Royal Beard Sculpt & Spa', '₹350', '30 min')" class="service-card cursor-pointer glass-panel rounded-xl p-4 transition-all">
+            <div class="flex justify-between items-start mb-2">
+              <i class="fa-solid fa-wand-magic-sparkles text-brandGold text-lg"></i>
+              <span class="text-xs bg-brandGold/10 text-brandGold px-2 py-0.5 rounded font-semibold">30 min</span>
+            </div>
+            <h4 class="font-semibold text-sm text-white">Royal Beard Sculpt</h4>
+            <p class="text-[11px] text-gray-400 mt-1">Precision trim + hot towel</p>
+            <p class="text-sm font-bold text-brandGold mt-3">₹350</p>
+          </div>
+
+          <div onclick="selectService(this, 'Hydra-Glow Facial Therapy', '₹1,800', '60 min')" class="service-card cursor-pointer glass-panel rounded-xl p-4 transition-all">
+            <div class="flex justify-between items-start mb-2">
+              <i class="fa-solid fa-spa text-brandGold text-lg"></i>
+              <span class="text-xs bg-brandGold/10 text-brandGold px-2 py-0.5 rounded font-semibold">60 min</span>
+            </div>
+            <h4 class="font-semibold text-sm text-white">Hydra-Glow Facial</h4>
+            <p class="text-[11px] text-gray-400 mt-1">Deep pore suction & serum</p>
+            <p class="text-sm font-bold text-brandGold mt-3">₹1,800</p>
+          </div>
+
+          <div onclick="selectService(this, 'Balayage & Global Color', '₹3,499+', '120 min')" class="service-card cursor-pointer glass-panel rounded-xl p-4 transition-all">
+            <div class="flex justify-between items-start mb-2">
+              <i class="fa-solid fa-paintbrush text-brandGold text-lg"></i>
+              <span class="text-xs bg-brandGold/10 text-brandGold px-2 py-0.5 rounded font-semibold">120 min</span>
+            </div>
+            <h4 class="font-semibold text-sm text-white">Balayage & Color</h4>
+            <p class="text-[11px] text-gray-400 mt-1">Hand-painted chromatic shade</p>
+            <p class="text-sm font-bold text-brandGold mt-3">₹3,499+</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3: SELECT DATE & TIME WINDOW -->
+      <div class="mb-10 border-t border-white/10 pt-8">
+        <div class="flex items-center gap-3 mb-5">
+          <span class="w-7 h-7 rounded-full bg-brandGold text-black font-bold text-xs flex items-center justify-center">3</span>
+          <h3 class="text-lg font-cinzel font-bold text-white">Choose Date & Slot</h3>
+        </div>
+
+        <div class="mb-6">
+          <p class="text-xs text-gray-400 mb-3 font-medium">Select Day:</p>
+          <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
+            <div onclick="selectDate(this, 'Today, Sep 20')" class="date-pill selected cursor-pointer glass-panel rounded-xl p-3 text-center transition-all">
+              <span class="block text-[11px] text-gray-400">TODAY</span>
+              <span class="block text-sm font-bold mt-1">Sep 20</span>
+            </div>
+            <div onclick="selectDate(this, 'Mon, Sep 21')" class="date-pill cursor-pointer glass-panel rounded-xl p-3 text-center transition-all">
+              <span class="block text-[11px] text-gray-400">MON</span>
+              <span class="block text-sm font-bold mt-1">Sep 21</span>
+            </div>
+            <div onclick="selectDate(this, 'Tue, Sep 22')" class="date-pill cursor-pointer glass-panel rounded-xl p-3 text-center transition-all">
+              <span class="block text-[11px] text-gray-400">TUE</span>
+              <span class="block text-sm font-bold mt-1">Sep 22</span>
+            </div>
+            <div onclick="selectDate(this, 'Wed, Sep 23')" class="date-pill cursor-pointer glass-panel rounded-xl p-3 text-center transition-all">
+              <span class="block text-[11px] text-gray-400">WED</span>
+              <span class="block text-sm font-bold mt-1">Sep 23</span>
+            </div>
+            <div onclick="selectDate(this, 'Thu, Sep 24')" class="date-pill cursor-pointer glass-panel rounded-xl p-3 text-center transition-all">
+              <span class="block text-[11px] text-gray-400">THU</span>
+              <span class="block text-sm font-bold mt-1">Sep 24</span>
+            </div>
+            <div onclick="selectDate(this, 'Fri, Sep 25')" class="date-pill cursor-pointer glass-panel rounded-xl p-3 text-center transition-all">
+              <span class="block text-[11px] text-gray-400">FRI</span>
+              <span class="block text-sm font-bold mt-1">Sep 25</span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <p class="text-xs text-gray-400 mb-3 font-medium">Select Time Slot:</p>
+          <div class="space-y-4">
+            <div>
+              <span class="text-[11px] uppercase tracking-wider text-brandGold font-semibold block mb-2">Morning Slots</span>
+              <div class="grid grid-cols-3 sm:grid-cols-6 gap-2.5">
+                <button onclick="selectSlot(this, '09:30 AM')" class="slot-pill glass-panel text-xs py-2.5 rounded-lg hover:border-brandGold transition-all">09:30 AM</button>
+                <button onclick="selectSlot(this, '10:15 AM')" class="slot-pill glass-panel text-xs py-2.5 rounded-lg hover:border-brandGold transition-all">10:15 AM</button>
+                <button onclick="selectSlot(this, '11:00 AM')" class="slot-pill glass-panel text-xs py-2.5 rounded-lg hover:border-brandGold transition-all">11:00 AM</button>
+                <button onclick="selectSlot(this, '11:45 AM')" class="slot-pill glass-panel text-xs py-2.5 rounded-lg hover:border-brandGold transition-all">11:45 AM</button>
+              </div>
+            </div>
+
+            <div>
+              <span class="text-[11px] uppercase tracking-wider text-brandGold font-semibold block mb-2">Afternoon & Evening</span>
+              <div class="grid grid-cols-3 sm:grid-cols-6 gap-2.5">
+                <button onclick="selectSlot(this, '02:00 PM')" class="slot-pill glass-panel text-xs py-2.5 rounded-lg hover:border-brandGold transition-all">02:00 PM</button>
+                <button onclick="selectSlot(this, '03:30 PM')" class="slot-pill selected glass-panel text-xs py-2.5 rounded-lg hover:border-brandGold transition-all">03:30 PM</button>
+                <button onclick="selectSlot(this, '05:00 PM')" class="slot-pill glass-panel text-xs py-2.5 rounded-lg hover:border-brandGold transition-all">05:00 PM</button>
+                <button onclick="selectSlot(this, '06:15 PM')" class="slot-pill glass-panel text-xs py-2.5 rounded-lg hover:border-brandGold transition-all">06:15 PM</button>
+                <button onclick="selectSlot(this, '07:30 PM')" class="slot-pill glass-panel text-xs py-2.5 rounded-lg hover:border-brandGold transition-all">07:30 PM</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 4: LIVE SUMMARY & ACTION -->
+      <div class="border-t border-white/10 pt-8 flex flex-col md:flex-row items-center justify-between gap-6 glass-panel p-6 rounded-2xl">
+        <div class="space-y-1 text-center md:text-left">
+          <span class="text-xs uppercase tracking-wider text-gray-400">Appointment Overview:</span>
+          <p class="font-cinzel text-base sm:text-lg font-bold text-white">
+            <span id="summaryService" class="text-brandGold">Signature Haircut</span> with <span id="summaryStylist" class="text-brandGold">Aryan Mehta</span>
+          </p>
+          <p class="text-xs text-gray-400">
+            <span id="summaryDate">Today, Sep 20</span> at <span id="summarySlot">03:30 PM</span> &bull; 
+            Duration: <span id="summaryDuration">45 min</span> &bull; 
+            Fee: <span id="summaryPrice" class="text-white font-semibold">₹450</span>
+          </p>
+        </div>
+
+        <button onclick="openBookingModal()" class="w-full md:w-auto bg-gradient-to-r from-brandGold to-brandGoldDark text-black font-bold px-8 py-3.5 rounded-xl text-sm transition-all duration-300 shadow-xl shadow-brandGold/25 hover:scale-105 flex items-center justify-center gap-2">
+          <span>Continue Reservation</span>
+          <i class="fa-solid fa-arrow-right text-xs"></i>
+        </button>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 15. LOOKBOOK / FILTERABLE GALLERY -->
+  <section id="gallery" class="py-24 px-6 max-w-7xl mx-auto border-b border-white/5">
+    <div class="text-center max-w-2xl mx-auto mb-12 reveal">
+      <span class="text-brandGold text-xs uppercase tracking-widest font-semibold">Lookbook</span>
+      <h2 class="text-3xl sm:text-4xl font-cinzel font-bold text-white mt-2">Signature Masterpieces</h2>
+      <div class="w-16 h-0.5 bg-brandGold mx-auto mt-4 mb-8"></div>
+
+      <div class="flex flex-wrap items-center justify-center gap-2">
+        <button onclick="filterGallery('all')" class="gallery-btn active bg-brandGold text-black font-semibold text-xs px-5 py-2.5 rounded-full transition-all">All Works</button>
+        <button onclick="filterGallery('hair')" class="gallery-btn glass-panel text-gray-300 hover:text-brandGold font-semibold text-xs px-5 py-2.5 rounded-full transition-all">Hair & Styling</button>
+        <button onclick="filterGallery('skin')" class="gallery-btn glass-panel text-gray-300 hover:text-brandGold font-semibold text-xs px-5 py-2.5 rounded-full transition-all">Skin & Glow</button>
+        <button onclick="filterGallery('bridal')" class="gallery-btn glass-panel text-gray-300 hover:text-brandGold font-semibold text-xs px-5 py-2.5 rounded-full transition-all">Bridal</button>
+      </div>
+    </div>
+
+    <div id="galleryGrid" class="grid grid-cols-2 md:grid-cols-4 gap-4 reveal">
+      <div class="gallery-item hair rounded-2xl overflow-hidden glass-panel aspect-[3/4] relative group">
+        <img src="https://images.unsplash.com/photo-1560869713-7d0a29430803?auto=format&fit=crop&w=700&q=80" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+          <p class="text-xs font-semibold text-white">Platinum Blonde Balayage</p>
+        </div>
+      </div>
+      <div class="gallery-item skin rounded-2xl overflow-hidden glass-panel aspect-[3/4] relative group">
+        <img src="https://images.unsplash.com/photo-1512290900672-1f55b9209a2d?auto=format&fit=crop&w=700&q=80" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+          <p class="text-xs font-semibold text-white">24K Radiance Dermal Care</p>
+        </div>
+      </div>
+      <div class="gallery-item bridal rounded-2xl overflow-hidden glass-panel aspect-[3/4] relative group">
+        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=700&q=80" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+          <p class="text-xs font-semibold text-white">Imperial Bridal Look</p>
+        </div>
+      </div>
+      <div class="gallery-item hair rounded-2xl overflow-hidden glass-panel aspect-[3/4] relative group">
+        <img src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=700&q=80" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+          <p class="text-xs font-semibold text-white">Gentleman Textured Crop</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 16. TESTIMONIALS & REVIEWS -->
+  <section id="testimonials" class="py-24 px-6 border-b border-white/5">
+    <div class="max-w-5xl mx-auto text-center reveal">
+      <span class="text-brandGold text-xs uppercase tracking-widest font-semibold">Client Endorsements</span>
+      <h2 class="text-3xl sm:text-4xl font-cinzel font-bold text-white mt-2 mb-14">Loved By Over 8,000+ Patrons</h2>
+
+      <div class="grid md:grid-cols-3 gap-6 text-left">
+        <div class="glass-panel p-6 rounded-2xl">
+          <div class="text-brandGold flex gap-1 mb-3 text-xs">
+            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+          </div>
+          <p class="text-xs text-gray-300 leading-relaxed mb-4">"Aryan Mehta completely changed my look. The haircut holds its shape effortlessly even after weeks. APEX is leagues ahead!"</p>
+          <p class="text-xs font-bold text-white">Pooja Dave</p>
+          <span class="text-[10px] text-gray-500">Client of Aryan Mehta</span>
+        </div>
+
+        <div class="glass-panel p-6 rounded-2xl">
+          <div class="text-brandGold flex gap-1 mb-3 text-xs">
+            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+          </div>
+          <p class="text-xs text-gray-300 leading-relaxed mb-4">"Maya's color sense is phenomenal. No brassiness, no damage—just clean platinum reflections. 10/10 recommendation."</p>
+          <p class="text-xs font-bold text-white">Harshil Mehta</p>
+          <span class="text-[10px] text-gray-500">Client of Maya Patel</span>
+        </div>
+
+        <div class="glass-panel p-6 rounded-2xl">
+          <div class="text-brandGold flex gap-1 mb-3 text-xs">
+            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+          </div>
+          <p class="text-xs text-gray-300 leading-relaxed mb-4">"Dr. Alisha's facial therapy made my skin feel renewed. Booking your specific aesthetician directly online is a gamechanger."</p>
+          <p class="text-xs font-bold text-white">Dr. Riddhi Shah</p>
+          <span class="text-[10px] text-gray-500">Client of Dr. Alisha</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 17. BOOKING MODAL POPUP -->
+  <div id="bookingModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-xl hidden items-center justify-center p-4">
+    <div class="glass-panel w-full max-w-lg rounded-3xl shadow-2xl p-6 sm:p-8 relative border-brandGold/40">
+      <button onclick="closeBookingModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-lg">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="text-center mb-6">
+        <span class="text-brandGold text-[11px] uppercase tracking-widest font-semibold">Priority Booking</span>
+        <h3 class="text-2xl font-cinzel font-bold text-white mt-1">Guest Confirmation</h3>
+        <p class="text-xs text-gray-400 mt-1">Lock your chosen stylist and time slot instantly.</p>
+      </div>
+
+      <div class="glass-panel p-4 rounded-xl mb-6 text-xs text-gray-300 space-y-2 border-brandGold/20">
+        <div class="flex justify-between">
+          <span class="text-gray-400">Assigned Stylist:</span>
+          <span id="modalStylist" class="font-semibold text-brandGold">Aryan Mehta</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-400">Selected Service:</span>
+          <span id="modalService" class="font-semibold text-white">Signature Haircut</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-400">Reserved Slot:</span>
+          <span id="modalSlot" class="font-semibold text-white">Today, Sep 20 @ 03:30 PM</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-400">Service Fee:</span>
+          <span id="modalPrice" class="font-semibold text-white">₹450</span>
+        </div>
+      </div>
+
+      <form onsubmit="handleFinalBooking(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-gray-300 mb-1">Your Full Name</label>
+          <input type="text" required placeholder="e.g. John Doe" class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brandGold">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-300 mb-1">Mobile Number (For WhatsApp / SMS Confirmation)</label>
+          <input type="tel" required placeholder="+91 98765 43210" class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brandGold">
+        </div>
+
+        <button type="submit" class="w-full bg-gradient-to-r from-brandGold to-brandGoldDark text-black font-bold py-3.5 rounded-xl text-sm transition-all shadow-lg shadow-brandGold/20 mt-2">
+          Confirm Appointment Now
+        </button>
+      </form>
+
+      <!-- Success State -->
+      <div id="bookingSuccessBox" class="hidden absolute inset-0 bg-[#0c0c10]/95 backdrop-blur-2xl rounded-3xl p-8 flex flex-col items-center justify-center text-center">
+        <div class="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-3xl mb-4 border border-emerald-500/40">
+          <i class="fa-solid fa-check"></i>
+        </div>
+        <h4 class="text-2xl font-cinzel font-bold text-white mb-2">Booking Confirmed!</h4>
+        <p class="text-xs text-gray-300 max-w-sm mb-6 leading-relaxed">
+          Your slot has been allocated to <span id="confirmedStylistName" class="text-brandGold font-semibold">Aryan Mehta</span>. A calendar invite has been sent to your phone.
+        </p>
+        <button onclick="closeBookingModal()" class="glass-panel text-white hover:border-brandGold px-6 py-2.5 rounded-xl text-xs font-semibold">
+          Close Window
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 18. FOOTER -->
+  <footer id="contact" class="border-t border-white/10 bg-black/80 py-12 px-6">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-6 text-xs text-gray-500">
+      <div>
+        <p class="font-cinzel text-lg text-white font-bold mb-1">APEX SALON & SPA</p>
+        <p>The Standard of Luxury Haircare & Aesthetic Rejuvenation</p>
+      </div>
+      <div class="flex items-center gap-4 text-gray-400 text-sm">
+        <a href="#" class="hover:text-brandGold transition-colors"><i class="fa-brands fa-instagram"></i></a>
+        <a href="#" class="hover:text-brandGold transition-colors"><i class="fa-brands fa-facebook"></i></a>
+        <a href="#" class="hover:text-brandGold transition-colors"><i class="fa-brands fa-whatsapp"></i></a>
+      </div>
+      <p>&copy; 2026 APEX Salon. Demo Prototype (₹90,000 Ambient Audio & Custom Package Architect Tier).</p>
+    </div>
+  </footer>
+
+  <!-- FLOATING WHATSAPP BUTTON -->
+  <a href="https://wa.me/919876543210?text=Hello%20APEX%20Salon,%20I%20want%20to%20reserve%20a%20stylist%20slot." target="_blank" class="fixed bottom-6 right-6 z-40 bg-[#25D366] text-white w-14 h-14 rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-transform duration-300">
+    <i class="fa-brands fa-whatsapp text-2xl"></i>
+  </a>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    // 1. Magnetic Custom Cursor Logic
+    const dot = document.getElementById('cursor-dot');
+    const ring = document.getElementById('cursor-ring');
+    let mouseX = 0, mouseY = 0, ringX = 0, ringY = 0;
+
+    window.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      dot.style.transform = `translate(${mouseX}px, ${mouseY}px)`;
+    });
+
+    function renderCursor() {
+      ringX += (mouseX - ringX) * 0.15;
+      ringY += (mouseY - ringY) * 0.15;
+      ring.style.transform = `translate(${ringX}px, ${ringY}px)`;
+      requestAnimationFrame(renderCursor);
+    }
+    requestAnimationFrame(renderCursor);
+
+    document.querySelectorAll('button, a, input, .flip-card-container, label').forEach(el => {
+      el.addEventListener('mouseenter', () => document.body.classList.add('hover-magnetic'));
+      el.addEventListener('mouseleave', () => document.body.classList.remove('hover-magnetic'));
+    });
+
+    // 2. Ambient Zen Audio Synthesis (Using Web Audio API - Zero External Dependencies)
+    let audioCtx = null;
+    let isPlaying = false;
+    let masterGain = null;
+    let osc1 = null, osc2 = null;
+
+    function toggleAmbientAudio() {
+      const btn = document.getElementById('audioToggleBtn');
+      const label = document.getElementById('audioLabelText');
+
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+
+      if (!isPlaying) {
+        // Create harmonious binaural/zen tones (108Hz + 112Hz)
+        masterGain = audioCtx.createGain();
+        masterGain.gain.setValueAtTime(0.01, audioCtx.currentTime);
+        masterGain.gain.exponentialRampToValueAtTime(0.06, audioCtx.currentTime + 2); // Soft volume
+        masterGain.connect(audioCtx.destination);
+
+        osc1 = audioCtx.createOscillator();
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(108, audioCtx.currentTime);
+
+        osc2 = audioCtx.createOscillator();
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(112, audioCtx.currentTime);
+
+        osc1.connect(masterGain);
+        osc2.connect(masterGain);
+        osc1.start();
+        osc2.start();
+
+        isPlaying = true;
+        btn.classList.remove('audio-paused');
+        label.innerText = 'Zen Audio Active';
+      } else {
+        masterGain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.8);
+        setTimeout(() => {
+          if (osc1) { osc1.stop(); osc2.stop(); }
+          isPlaying = false;
+          btn.classList.add('audio-paused');
+          label.innerText = 'Zen Audio Off';
+        }, 800);
+      }
+    }
+
+    // 3. Interactive Custom Package Builder Calculator
+    function recalculateCustomPackage() {
+      const checkedBoxes = document.querySelectorAll('.package-item:checked');
+      const listContainer = document.getElementById('selectedServicesList');
+      listContainer.innerHTML = '';
+
+      let totalPrice = 0;
+      let totalTime = 0;
+
+      checkedBoxes.forEach(box => {
+        const name = box.getAttribute('data-name');
+        const price = parseInt(box.getAttribute('data-price'));
+        const time = parseInt(box.getAttribute('data-time'));
+
+        totalPrice += price;
+        totalTime += time;
+
+        const row = document.createElement('div');
+        row.className = 'flex justify-between items-center';
+        row.innerHTML = `<span class="truncate pr-2">• ${name}</span><span class="text-white font-semibold">₹${price}</span>`;
+        listContainer.appendChild(row);
+      });
+
+      if (checkedBoxes.length === 0) {
+        listContainer.innerHTML = '<p class="text-gray-500 italic">No rituals selected yet.</p>';
+      }
+
+      const discount = Math.round(totalPrice * 0.15);
+      const finalPrice = totalPrice - discount;
+
+      document.getElementById('pkgTotalTime').innerText = totalTime + ' min';
+      document.getElementById('pkgOriginalPrice').innerText = '₹' + totalPrice;
+      document.getElementById('pkgDiscountAmount').innerText = '- ₹' + discount;
+      document.getElementById('pkgFinalPrice').innerText = '₹' + finalPrice;
+    }
+
+    function bookCustomPackage() {
+      const finalPrice = document.getElementById('pkgFinalPrice').innerText;
+      const totalTime = document.getElementById('pkgTotalTime').innerText;
+      
+      state.service = `Custom VIP Bundle (${totalTime})`;
+      state.price = finalPrice;
+      state.duration = totalTime;
+      updateSummary();
+      openBookingModal();
+    }
+
+    // Initialize package calculator on load
+    window.addEventListener('DOMContentLoaded', recalculateCustomPackage);
+
+    // 4. Scroll-Driven Reveal Animation
+    function revealOnScroll() {
+      const reveals = document.querySelectorAll('.reveal');
+      const windowHeight = window.innerHeight;
+      reveals.forEach(el => {
+        const elementTop = el.getBoundingClientRect().top;
+        if (elementTop < windowHeight - 80) {
+          el.classList.add('active');
+        }
+      });
+    }
+    window.addEventListener('scroll', revealOnScroll);
+    window.addEventListener('load', revealOnScroll);
+
+    // 5. 3D Flip Card Tap Support for Mobile
+    document.querySelectorAll('.flip-card-container').forEach(card => {
+      card.addEventListener('click', () => {
+        card.classList.toggle('flipped');
+      });
+    });
+
+    // 6. Before & After Slider
+    const baSlider = document.getElementById('baSlider');
+    const baOverlay = document.getElementById('baOverlay');
+    const baHandle = document.getElementById('baHandle');
+    let isDragging = false;
+
+    function updateSlider(xPos) {
+      const rect = baSlider.getBoundingClientRect();
+      let offsetX = xPos - rect.left;
+      if (offsetX < 0) offsetX = 0;
+      if (offsetX > rect.width) offsetX = rect.width;
+      const percentage = (offsetX / rect.width) * 100;
+      baOverlay.style.width = percentage + '%';
+      baHandle.style.left = percentage + '%';
+    }
+
+    baSlider.addEventListener('mousedown', (e) => { isDragging = true; updateSlider(e.clientX); });
+    window.addEventListener('mouseup', () => { isDragging = false; });
+    window.addEventListener('mousemove', (e) => { if (isDragging) updateSlider(e.clientX); });
+
+    baSlider.addEventListener('touchstart', (e) => { isDragging = true; updateSlider(e.touches[0].clientX); });
+    window.addEventListener('touchend', () => { isDragging = false; });
+    window.addEventListener('touchmove', (e) => { if (isDragging) updateSlider(e.touches[0].clientX); });
+
+    // 7. Filterable Lookbook Gallery
+    function filterGallery(category) {
+      const items = document.querySelectorAll('.gallery-item');
+      const buttons = document.querySelectorAll('.gallery-btn');
+
+      buttons.forEach(btn => {
+        btn.classList.remove('bg-brandGold', 'text-black');
+        btn.classList.add('glass-panel', 'text-gray-300');
+      });
+      event.target.classList.add('bg-brandGold', 'text-black');
+      event.target.classList.remove('glass-panel', 'text-gray-300');
+
+      items.forEach(item => {
+        item.style.display = (category === 'all' || item.classList.contains(category)) ? 'block' : 'none';
+      });
+    }
+
+    // 8. Pro Scheduler State & Logic
+    let state = {
+      stylist: 'Aryan Mehta',
+      service: 'Signature Haircut',
+      price: '₹450',
+      duration: '45 min',
+      date: 'Today, Sep 20',
+      slot: '03:30 PM'
+    };
+
+    function selectStylist(el, name, role) {
+      document.querySelectorAll('.stylist-card').forEach(card => card.classList.remove('selected'));
+      el.classList.add('selected');
+      state.stylist = name;
+      updateSummary();
+    }
+
+    function quickSelectStylist(name) {
+      state.stylist = name;
+      const cards = document.querySelectorAll('.stylist-card');
+      cards.forEach(card => {
+        if (card.innerText.includes(name.split(' ')[0])) {
+          card.classList.add('selected');
+        } else {
+          card.classList.remove('selected');
+        }
+      });
+      updateSummary();
+    }
+
+    function selectService(el, name, price, duration) {
+      document.querySelectorAll('.service-card').forEach(card => card.classList.remove('selected'));
+      el.classList.add('selected');
+      state.service = name;
+      state.price = price;
+      state.duration = duration;
+      updateSummary();
+    }
+
+    function selectDate(el, dateText) {
+      document.querySelectorAll('.date-pill').forEach(pill => pill.classList.remove('selected'));
+      el.classList.add('selected');
+      state.date = dateText;
+      updateSummary();
+    }
+
+    function selectSlot(el, slotText) {
+      document.querySelectorAll('.slot-pill').forEach(btn => btn.classList.remove('selected'));
+      el.classList.add('selected');
+      state.slot = slotText;
+      updateSummary();
+    }
+
+    function updateSummary() {
+      document.getElementById('summaryStylist').innerText = state.stylist;
+      document.getElementById('summaryService').innerText = state.service;
+      document.getElementById('summaryPrice').innerText = state.price;
+      document.getElementById('summaryDuration').innerText = state.duration;
+      document.getElementById('summaryDate').innerText = state.date;
+      document.getElementById('summarySlot').innerText = state.slot;
+    }
+
+    function openBookingModal() {
+      document.getElementById('modalStylist').innerText = state.stylist;
+      document.getElementById('modalService').innerText = state.service;
+      document.getElementById('modalSlot').innerText = `${state.date} @ ${state.slot}`;
+      document.getElementById('modalPrice').innerText = state.price;
+      document.getElementById('confirmedStylistName').innerText = state.stylist;
+      document.getElementById('bookingModal').classList.remove('hidden');
+      document.getElementById('bookingModal').classList.add('flex');
+    }
+
+    function closeBookingModal() {
+      document.getElementById('bookingModal').classList.add('hidden');
+      document.getElementById('bookingModal').classList.remove('flex');
+      document.getElementById('bookingSuccessBox').classList.add('hidden');
+    }
+
+    function handleFinalBooking(e) {
+      e.preventDefault();
+      document.getElementById('bookingSuccessBox').classList.remove('hidden');
+    }
+  </script>
+</body>
+</html>
